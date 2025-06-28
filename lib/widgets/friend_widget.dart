@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:star_chat/models/user_model.dart';
 import 'package:star_chat/pages/chat_page.dart';
-import 'package:star_chat/providers/user_provider.dart';
+import 'package:star_chat/services/repository.dart';
 import '../const.dart';
 import '../models/friend_model.dart';
 
@@ -13,7 +13,7 @@ class FriendWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    UserModel currentUser = context.read<UserProvider>().currentUser!;
+    UserModel currentUser = context.read<Repository>().currentUser!;
     return StreamBuilder<DocumentSnapshot>(
       stream:
           FirebaseFirestore.instance

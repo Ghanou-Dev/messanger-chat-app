@@ -1,15 +1,16 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:star_chat/models/friend_model.dart';
 import 'package:star_chat/pages/bottom_bar.dart';
-import 'package:star_chat/providers/user_provider.dart';
+import 'package:star_chat/pages/cubits/home_cubit/home_cubit.dart';
+import 'package:star_chat/pages/cubits/home_cubit/home_state.dart';
+import 'package:star_chat/services/repository.dart';
 import '../models/user_model.dart';
 import '../const.dart';
 
 class FriendAdd extends StatefulWidget {
   final UserModel friend;
-  FriendAdd({required this.friend, super.key});
+  const FriendAdd({required this.friend, super.key});
 
   @override
   State<FriendAdd> createState() => _FriendAddState();
@@ -25,7 +26,7 @@ class _FriendAddState extends State<FriendAdd> {
     super.initState();
     friendData = widget.friend.toMap();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      friends = context.read<UserProvider>().friends;
+      friends = context.read<Repository>().friends;
       if (friends != null) {
         setState(() {
           isAdd = friends!.any(
@@ -48,11 +49,14 @@ class _FriendAddState extends State<FriendAdd> {
       title: Text(friendData![kName] ?? 'جار تحميل الاسم'),
       trailing: IconButton(
         onPressed: () {
-          context.read<UserProvider>().addFriend(widget.friend);
+          context.read<HomeCubit>().addFriend(friend: widget.friend);
           scaffoldMessage(context, 'Add Friend Successfully');
-          setState(() {
-            isAdd = true;
-          });
+          // setState(() {
+          //   isAdd = true;
+          // });
+          // // tafrigh el hala
+          // context.read<HomeCubit>().emit(HomeInitial());
+          // context.read<HomeCubit>().loadCurrentUser();
           Navigator.of(context).pushReplacementNamed(BottomBar.pageRoute);
         },
         icon:

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:star_chat/const.dart';
 import 'package:star_chat/models/user_model.dart';
-import 'package:star_chat/providers/user_provider.dart';
+import 'package:star_chat/services/repository.dart';
 
 class EdietProfilePage extends StatelessWidget {
   EdietProfilePage({super.key});
@@ -15,7 +15,8 @@ class EdietProfilePage extends StatelessWidget {
   TextEditingController fieldController = TextEditingController();
   @override
   Widget build(BuildContext context) {
-    UserProvider provider = context.read<UserProvider>();
+    // UserProvider provider = context.read<UserProvider>();
+    Repository repo = context.read<Repository>();
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -43,7 +44,7 @@ class EdietProfilePage extends StatelessWidget {
               ),
             ),
             customTextField(
-              hint: provider.currentUser!.name,
+              hint: repo.currentUser!.name,
               textInputType: TextInputType.name,
               onChange: (data) {
                 name = data;
@@ -62,7 +63,7 @@ class EdietProfilePage extends StatelessWidget {
               ),
             ),
             customTextField(
-              hint: provider.currentUser!.email,
+              hint: repo.currentUser!.email,
               textInputType: TextInputType.text,
               onChange: (data) {
                 email = data;
@@ -92,17 +93,17 @@ class EdietProfilePage extends StatelessWidget {
               child: ElevatedButton(
                 onPressed: () async {
                   if (name == null || name!.isEmpty) {
-                    name = provider.currentUser!.name;
+                    name = repo.currentUser!.name;
                   }
                   if (email == null || email!.isEmpty) {
-                    email = provider.currentUser!.email;
+                    email = repo.currentUser!.email;
                   }
                   if (phoneNumber == null || phoneNumber!.isEmpty) {
                     phoneNumber = '';
                   }
                   await FirebaseFirestore.instance
                       .collection(kUsersCollection)
-                      .doc(provider.currentUser!.uid)
+                      .doc(repo.currentUser!.uid)
                       .update({
                         kName: name,
                         kEmail: email,
@@ -111,7 +112,7 @@ class EdietProfilePage extends StatelessWidget {
                   DocumentSnapshot snapshot =
                       await FirebaseFirestore.instance
                           .collection(kUsersCollection)
-                          .doc(provider.currentUser!.uid)
+                          .doc(repo.currentUser!.uid)
                           .get();
                   UserModel? currentUpdateUser;
                   if (snapshot.exists) {
@@ -120,9 +121,9 @@ class EdietProfilePage extends StatelessWidget {
                     );
                   }
                   // update user model
-                  provider.currentUser = currentUpdateUser;
+                  repo.currentUser = currentUpdateUser;
                   // update name in friends collection
-                  provider.updateNameInAccountFriends(name: name!);
+                  repo.updateNameInAccountFriends(name: name!);
                   Navigator.of(context).pop();
                 },
                 style: ElevatedButton.styleFrom(

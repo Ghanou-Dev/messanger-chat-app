@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:star_chat/const.dart';
-import 'package:star_chat/providers/user_provider.dart';
+import 'package:star_chat/services/repository.dart';
 import 'package:star_chat/widgets/costum_textfield.dart';
 
 class ChangePasswordPage extends StatelessWidget {
@@ -17,7 +17,8 @@ class ChangePasswordPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    UserProvider provider = context.read<UserProvider>();
+    // UserProvider provider = context.read<UserProvider>();
+    Repository repo = context.read<Repository>();
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -54,7 +55,7 @@ class ChangePasswordPage extends StatelessWidget {
                 validator: (data) {
                   if (data!.isEmpty) {
                     return 'Field is required !';
-                  } else if (data != provider.currentUser!.password) {
+                  } else if (data != repo.currentUser!.password) {
                     return 'Ivalid Password !';
                   }
                   return null;
@@ -114,10 +115,10 @@ class ChangePasswordPage extends StatelessWidget {
                       if (newPassword == confirmPassword) {
                         await FirebaseFirestore.instance
                             .collection(kUsersCollection)
-                            .doc(provider.currentUser!.uid)
+                            .doc(repo.currentUser!.uid)
                             .update({kPassword: newPassword});
-                        context.read<UserProvider>().loadCurrentUser(provider.currentUser!.uid);
-                        
+                        repo.loadCurrentUser();
+
                         scaffoldMessage(
                           context,
                           'Change Password Successfully',

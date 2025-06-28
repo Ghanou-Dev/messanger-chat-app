@@ -1,9 +1,12 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:star_chat/providers/user_provider.dart';
+import 'package:star_chat/models/friend_model.dart';
+import 'package:star_chat/pages/cubits/home_cubit/home_cubit.dart';
+import 'package:star_chat/pages/cubits/home_cubit/home_state.dart';
+import 'package:star_chat/pages/cubits/search_cubit/search_cubit.dart';
+import 'package:star_chat/services/repository.dart';
 import '../const.dart';
 import '../models/user_model.dart';
 import '../pages/search_page.dart';
@@ -19,17 +22,20 @@ class HomeChatPage extends StatefulWidget {
 
 class _HomeChatPageState extends State<HomeChatPage> {
   TextEditingController textFieldController = TextEditingController();
-
   List<UserModel> searchResults = [];
+
+  late Repository repo;
 
   @override
   void initState() {
     super.initState();
     logedIn();
+    repo = context.read<Repository>();
     // saveUserData();
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
-      final uid = FirebaseAuth.instance.currentUser!.uid;
-      await context.read<UserProvider>().loadCurrentUser(uid);
+      await context.read<HomeCubit>().loadCurrentUser(); // loaded // success
+
+      await saveUserData();
     });
   }
 
@@ -40,54 +46,20 @@ class _HomeChatPageState extends State<HomeChatPage> {
   }
 
   // حفظ بيانات المستخدم في ذاكرة الجهاز
-  // void saveUserData() async {
-  //   final preferences = await SharedPreferences.getInstance();
-  //   final uid = FirebaseAuth.instance.currentUser!.uid;
-  //   preferences.setString(kUserID, uid);
-  // }
-
-  // دالة للبحث عن الاصدقاء
-  Future<void> searchFriends(BuildContext context, String searchID) async {
-    QuerySnapshot snapshot =
-        await FirebaseFirestore.instance
-            .collection(kUsersCollection)
-            .where(kSearchID, isEqualTo: searchID)
-            .get();
-    if (snapshot.docs.isEmpty) return;
-    setState(() {
-      searchResults.clear();
-    });
-    try {
-      if (snapshot.docs.isNotEmpty) {
-        for (var doc in snapshot.docs) {
-          searchResults.add(UserModel.fromJson(doc.data()!));
-        }
-      }
-    } catch (ex) {
-      debugPrint('خطأ اثناء البحث : $ex');
-      scaffoldMessage(context, 'خطأ اثناء البحث ');
-    }
-    setState(() {});
+  Future<void> saveUserData() async {
+    final preferences = await SharedPreferences.getInstance();
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+    preferences.setString(kUserID, uid);
   }
 
   @override
   Widget build(BuildContext context) {
-    final userProvider = context.watch<UserProvider>();
-
-    final currentUser = userProvider.currentUser;
-
-    if (currentUser == null) {
-      return Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(), // أو أي شاشة تحميل مؤقتة
-        ),
-      );
-    }
-
-    final friends = userProvider.friends;
+    UserModel? currentUser = repo.currentUser;
+    List<FriendModel> friends = repo.friends;
     return Scaffold(
       appBar: AppBar(
-        automaticallyImplyLeading: false,
+        automaticallyImplyLeading:
+            false, //***************************************************/
         toolbarHeight: 70,
         title: Text(
           'Start Chat',
@@ -99,96 +71,177 @@ class _HomeChatPageState extends State<HomeChatPage> {
           ),
         ),
       ),
-      body: Column(
-        children: [
-          const SizedBox(height: 10),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10.0),
-            child: TextField(
-              controller: textFieldController,
-              onSubmitted: (val) async {
-                await searchFriends(context, val);
-                Navigator.of(context).pushNamed(
-                  SearchPage.pageRoute,
-                  arguments: {'searchResults': searchResults},
-                );
-                textFieldController.clear();
-              },
-              cursorColor: Colors.blue,
-              decoration: InputDecoration(
-                suffixIcon: Icon(Icons.search),
-                suffixIconColor: Colors.blue.shade300,
-                hintText: 'Search friend',
-                hintStyle: TextStyle(color: Colors.blueGrey),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30),
-                  borderSide: BorderSide(color: Colors.blue),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30),
-                  borderSide: BorderSide(color: Colors.blueGrey),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10.0),
-            child: Row(
-              children: [
-                Column(
-                  children: [
-                    CircleAvatar(
-                      backgroundImage:
-                          context
-                                      .read<UserProvider>()
-                                      .currentUser!
-                                      .profileImage ==
-                                  ''
-                              ? AssetImage('assets/images/profile.jpg')
-                                  as ImageProvider
-                              : NetworkImage(
-                                context
-                                    .read<UserProvider>()
-                                    .currentUser!
-                                    .profileImage,
-                              ),
-                      radius: 38,
-                    ),
-                    Text(
-                      context.read<UserProvider>().currentUser == null
-                          ? 'جاري تحميل الاسم...'
-                          : context.watch<UserProvider>().currentUser!.name,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
+      body: BlocConsumer<HomeCubit, HomeState>(
+        listener: (context, state) {
+          if (state is HomeGo) {
+            Navigator.of(context).pushNamed(
+              state.pageRoute,
+              arguments: {'searchResults': searchResults},
+            );
+          }
+        },
+        builder: (context, state) {
+          if (state is HomeLoaded) {
+            return Center(
+              child: CircularProgressIndicator(color: Colors.blue),
+            ); // أو أي شاشة تحميل مؤقتة
+          } else if (state is HomeSuccess) {
+            final currentUser = state.currentUser;
+            final friends = repo.friends;
+
+            if (friends.isEmpty) {
+              return Column(
+                children: [
+                  const SizedBox(height: 10),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                    child: TextField(
+                      controller: textFieldController,
+                      onSubmitted: (val) async {
+                        await context.read<SearchCubit>().searchFriends(
+                          context,
+                          val,
+                        );
+                        context.read<HomeCubit>().go(
+                          pageRoute: SearchPage.pageRoute,
+                        );
+                        textFieldController.clear();
+                      },
+                      cursorColor: Colors.blue,
+                      decoration: InputDecoration(
+                        suffixIcon: Icon(Icons.search),
+                        suffixIconColor: Colors.blue.shade300,
+                        hintText: 'Search friend',
+                        hintStyle: TextStyle(color: Colors.blueGrey),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(30),
+                          borderSide: BorderSide(color: Colors.blue),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(30),
+                          borderSide: BorderSide(color: Colors.blueGrey),
+                        ),
                       ),
                     ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 8),
-          Expanded(
-            child:
-                friends.isEmpty
-                    ? Center(
+                  ),
+                  const SizedBox(height: 24),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                    child: Row(
+                      children: [
+                        Column(
+                          children: [
+                            CircleAvatar(
+                              backgroundImage:
+                                  currentUser.profileImage == ''
+                                      ? AssetImage('assets/images/profile.jpg')
+                                          as ImageProvider
+                                      : NetworkImage(currentUser.profileImage),
+                              radius: 38,
+                            ),
+                            Text(
+                              currentUser.name,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Expanded(
+                    child: Center(
                       child: Text(
                         'لا يوجد أصدقاء بعد',
                         style: TextStyle(fontSize: 18, color: Colors.grey),
                       ),
-                    )
-                    : ListView.builder(
-                      itemCount: friends.length,
-                      itemBuilder: (context, index) {
-                        return FriendWidget(
-                          friendSearchID: friends[index].friendSearchID,
-                        );
-                      },
                     ),
-          ),
-        ],
+                  ),
+                ],
+              );
+            }
+
+            return Column(
+              children: [
+                const SizedBox(height: 10),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                  child: TextField(
+                    controller: textFieldController,
+                    onSubmitted: (val) async {
+                      await context.read<SearchCubit>().searchFriends(
+                        context,
+                        val,
+                      ); // first state before go to search page ///////////////////
+                      context.read<HomeCubit>().go(
+                        pageRoute: SearchPage.pageRoute,
+                      );
+                      textFieldController.clear();
+                    },
+                    cursorColor: Colors.blue,
+                    decoration: InputDecoration(
+                      suffixIcon: Icon(Icons.search),
+                      suffixIconColor: Colors.blue.shade300,
+                      hintText: 'Search friend',
+                      hintStyle: TextStyle(color: Colors.blueGrey),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(30),
+                        borderSide: BorderSide(color: Colors.blue),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(30),
+                        borderSide: BorderSide(color: Colors.blueGrey),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                  child: Row(
+                    children: [
+                      Column(
+                        children: [
+                          CircleAvatar(
+                            backgroundImage:
+                                currentUser.profileImage == ''
+                                    ? AssetImage('assets/images/profile.jpg')
+                                        as ImageProvider
+                                    : NetworkImage(currentUser.profileImage),
+                            radius: 38,
+                          ),
+                          Text(
+                            currentUser.name,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: friends.length,
+                    itemBuilder: (context, index) {
+                      return FriendWidget(
+                        friendSearchID: friends[index].friendSearchID,
+                      );
+                    },
+                  ),
+                ),
+              ],
+            );
+          }
+
+          return Center(child: CircularProgressIndicator());
+        },
       ),
     );
   }
