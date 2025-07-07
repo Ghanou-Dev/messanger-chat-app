@@ -17,7 +17,6 @@ class ChangePasswordPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // UserProvider provider = context.read<UserProvider>();
     Repository repo = context.read<Repository>();
     return Scaffold(
       backgroundColor: Colors.white,

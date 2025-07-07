@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
-import 'package:star_chat/pages/bottom_bar.dart';
 import 'package:star_chat/pages/cubits/auth_cubit/auth_cubit.dart';
 import 'package:star_chat/pages/cubits/auth_cubit/auth_state.dart';
 import 'package:star_chat/pages/login_screen.dart';
@@ -39,13 +38,13 @@ class _SingupScreenState extends State<SingupScreen> {
           scaffoldMessage(context, state.messageError);
         } else if (state is SingupSuccess) {
           scaffoldMessage(context, 'Success .');
-          // Navigator.of(context).pushReplacementNamed(BottomBar.pageRoute);
         }
       },
       builder: (context, state) {
         if (state is AuthLoaded) {
           return ModalProgressHUD(
             inAsyncCall: true,
+            progressIndicator: CircularProgressIndicator(color: Colors.lightBlue,),
             child: buildScaffold(context),
           );
         } else {

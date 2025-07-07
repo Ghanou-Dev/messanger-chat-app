@@ -45,6 +45,7 @@ class _LoginScreenState extends State<LoginScreen> {
         if (state is AuthLoaded) {
           return ModalProgressHUD(
             inAsyncCall: true,
+            progressIndicator: CircularProgressIndicator(color: Colors.lightBlue,),
             child: buildScaffold(context),
           );
         } else {

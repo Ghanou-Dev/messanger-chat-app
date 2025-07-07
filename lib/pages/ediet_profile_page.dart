@@ -1,9 +1,10 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:star_chat/const.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:star_chat/models/user_model.dart';
-import 'package:star_chat/services/repository.dart';
+import 'package:star_chat/pages/cubits/edit_profile_cubit/edit_profile_cubit.dart';
+import 'package:star_chat/pages/cubits/edit_profile_cubit/edit_profile_state.dart';
+import 'package:star_chat/pages/cubits/home_cubit/home_cubit.dart';
+import 'package:star_chat/pages/cubits/profile_cubit/profile_cubit.dart';
 
 class EdietProfilePage extends StatelessWidget {
   EdietProfilePage({super.key});
@@ -15,8 +16,6 @@ class EdietProfilePage extends StatelessWidget {
   TextEditingController fieldController = TextEditingController();
   @override
   Widget build(BuildContext context) {
-    // UserProvider provider = context.read<UserProvider>();
-    Repository repo = context.read<Repository>();
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -25,120 +24,198 @@ class EdietProfilePage extends StatelessWidget {
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Image.asset('assets/images/OIP5.jpg'),
-            // const SizedBox(height: 40),
-            Padding(
-              padding: const EdgeInsets.only(left: 15.0),
-              child: const Text(
-                'Edit Name',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 22,
-                  color: Colors.blueAccent,
-                ),
+      body: BlocConsumer<EditProfileCubit, EditProfileState>(
+        listener: (context, state)async {
+          if (state is EditProfileSuccess) {
+            await context.read<ProfileCubit>().reloadUser();
+            await context.read<HomeCubit>().loadCurrentUser();
+            Navigator.of(context).pop();
+
+          }
+        },
+        builder: (context, state) {
+          if (state is EditProfileSuccess) {
+            UserModel currentUser = state.currentUserEditing;
+            return SingleChildScrollView(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Image.asset('assets/images/OIP5.jpg'),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 15.0),
+                    child: const Text(
+                      'Edit Name',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 22,
+                        color: Colors.blueAccent,
+                      ),
+                    ),
+                  ),
+                  customTextField(
+                    hint: currentUser.name,
+                    textInputType: TextInputType.name,
+                    onChange: (data) {
+                      name = data;
+                    },
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 15.0),
+                    child: const Text(
+                      'Edit Email',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 22,
+                        color: Colors.blueAccent,
+                      ),
+                    ),
+                  ),
+                  customTextField(
+                    hint: currentUser.email,
+                    textInputType: TextInputType.text,
+                    onChange: (data) {
+                      email = data;
+                    },
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 15.0),
+                    child: const Text(
+                      'Phone Number',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 22,
+                        color: Colors.blueAccent,
+                      ),
+                    ),
+                  ),
+                  customTextField(
+                    hint: 'PhoneNumber',
+                    textInputType: TextInputType.phone,
+                    onChange: (data) {
+                      phoneNumber = data;
+                    },
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        context.read<EditProfileCubit>().editProfile(
+                          name: name,
+                          email: email,
+                          phoneNumber: phoneNumber,
+                        );
+                        // Navigator.of(context).pop();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: Size(double.infinity, 54),
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                      ),
+                      child: Text(
+                        'Save',
+                        style: TextStyle(fontSize: 18, color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ),
-            customTextField(
-              hint: repo.currentUser!.name,
-              textInputType: TextInputType.name,
-              onChange: (data) {
-                name = data;
-              },
-            ),
-            // const SizedBox(height: 28),
-            Padding(
-              padding: const EdgeInsets.only(left: 15.0),
-              child: const Text(
-                'Edit Email',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 22,
-                  color: Colors.blueAccent,
-                ),
+            );
+          } else if (state is EditProfileInitial) {
+            UserModel currntUser = state.currentUserEditing;
+            return SingleChildScrollView(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Image.asset('assets/images/OIP5.jpg'),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 15.0),
+                    child: const Text(
+                      'Edit Name',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 22,
+                        color: Colors.blueAccent,
+                      ),
+                    ),
+                  ),
+                  customTextField(
+                    hint: currntUser.name,
+                    textInputType: TextInputType.name,
+                    onChange: (data) {
+                      name = data;
+                    },
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 15.0),
+                    child: const Text(
+                      'Edit Email',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 22,
+                        color: Colors.blueAccent,
+                      ),
+                    ),
+                  ),
+                  customTextField(
+                    hint: currntUser.email,
+                    textInputType: TextInputType.text,
+                    onChange: (data) {
+                      email = data;
+                    },
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 15.0),
+                    child: const Text(
+                      'Phone Number',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 22,
+                        color: Colors.blueAccent,
+                      ),
+                    ),
+                  ),
+                  customTextField(
+                    hint: 'PhoneNumber',
+                    textInputType: TextInputType.phone,
+                    onChange: (data) {
+                      phoneNumber = data;
+                    },
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        
+                        await context.read<EditProfileCubit>().editProfile(
+                          name: name,
+                          email: email,
+                          phoneNumber: phoneNumber,
+                        );
+                        await context.read<HomeCubit>().loadCurrentUser(); ////////////////////////////
+                        // await context.read<ProfileCubit>().reloadUser(); //////////////////////////////
+                      },
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: Size(double.infinity, 54),
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                      ),
+                      child: Text(
+                        'Save',
+                        style: TextStyle(fontSize: 18, color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ),
-            customTextField(
-              hint: repo.currentUser!.email,
-              textInputType: TextInputType.text,
-              onChange: (data) {
-                email = data;
-              },
-            ),
-            // const SizedBox(height: 28),
-            Padding(
-              padding: const EdgeInsets.only(left: 15.0),
-              child: const Text(
-                'Phone Number',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 22,
-                  color: Colors.blueAccent,
-                ),
-              ),
-            ),
-            customTextField(
-              hint: 'PhoneNumber',
-              textInputType: TextInputType.phone,
-              onChange: (data) {
-                phoneNumber = data;
-              },
-            ),
-            Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: ElevatedButton(
-                onPressed: () async {
-                  if (name == null || name!.isEmpty) {
-                    name = repo.currentUser!.name;
-                  }
-                  if (email == null || email!.isEmpty) {
-                    email = repo.currentUser!.email;
-                  }
-                  if (phoneNumber == null || phoneNumber!.isEmpty) {
-                    phoneNumber = '';
-                  }
-                  await FirebaseFirestore.instance
-                      .collection(kUsersCollection)
-                      .doc(repo.currentUser!.uid)
-                      .update({
-                        kName: name,
-                        kEmail: email,
-                        kPhoneNumber: phoneNumber,
-                      });
-                  DocumentSnapshot snapshot =
-                      await FirebaseFirestore.instance
-                          .collection(kUsersCollection)
-                          .doc(repo.currentUser!.uid)
-                          .get();
-                  UserModel? currentUpdateUser;
-                  if (snapshot.exists) {
-                    currentUpdateUser = UserModel.fromJson(
-                      snapshot.data() as Map<String, dynamic>,
-                    );
-                  }
-                  // update user model
-                  repo.currentUser = currentUpdateUser;
-                  // update name in friends collection
-                  repo.updateNameInAccountFriends(name: name!);
-                  Navigator.of(context).pop();
-                },
-                style: ElevatedButton.styleFrom(
-                  minimumSize: Size(double.infinity, 54),
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                ),
-                child: Text(
-                  'Save',
-                  style: TextStyle(fontSize: 18, color: Colors.white),
-                ),
-              ),
-            ),
-          ],
-        ),
+            );
+          } else {
+            return Center(
+              child: CircularProgressIndicator(color: Colors.lightBlue),
+            );
+          }
+        },
       ),
     );
   }

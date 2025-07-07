@@ -3,7 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:star_chat/const.dart';
 import 'package:star_chat/models/user_model.dart';
@@ -28,6 +27,11 @@ class _ProfilePageState extends State<ProfilePage> {
   void initState() {
     super.initState();
     repo = context.read<Repository>();
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+      await context.read<HomeCubit>().loadCurrentUser();
+      await context.read<ProfileCubit>().reloadUser();
+      
+    });
   }
 
   void singOut() async {
@@ -49,6 +53,7 @@ class _ProfilePageState extends State<ProfilePage> {
         },
         builder: (context, state) {
           if (state is ProfileUpdateSuccess) {
+            UserModel? currentUser = state.currentUserUpdate;
             return Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -77,6 +82,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         .doc(currentUser.uid)
                         .update({kProfileImage: imageUrl});
                     await context.read<HomeCubit>().loadCurrentUser();
+                    await context.read<ProfileCubit>().reloadUser();
                     // update image in Collection frinds
                     await context
                         .read<ProfileCubit>()
@@ -84,11 +90,10 @@ class _ProfilePageState extends State<ProfilePage> {
                           newImage: imageUrl,
                           currentUser: currentUser,
                         );
-                    setState(() {});
                   },
                   child: CircleAvatar(
                     backgroundImage:
-                        currentUser!.profileImage == ''
+                        currentUser.profileImage == ''
                             ? AssetImage('assets/images/profile.jpg')
                                 as ImageProvider
                             : NetworkImage(currentUser.profileImage),
@@ -249,8 +254,10 @@ class _ProfilePageState extends State<ProfilePage> {
                               as ImageProvider
                           : NetworkImage(currentUser.profileImage),
                   radius: 68,
+                  child: CircularProgressIndicator(color: Colors.lightBlue),
                 ),
               ),
+
               Text(
                 currentUser.name,
                 style: TextStyle(
@@ -361,6 +368,10 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
             ],
           );
+
+          // return Center(
+          //   child: CircularProgressIndicator(color: Colors.lightBlue),
+          // );
         },
       ),
     );

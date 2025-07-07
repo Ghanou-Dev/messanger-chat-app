@@ -7,6 +7,7 @@ import 'package:star_chat/firebase_options.dart';
 import 'package:star_chat/pages/change_password_page.dart';
 import 'package:star_chat/pages/cubits/auth_cubit/auth_cubit.dart';
 import 'package:star_chat/pages/cubits/chat_cubit/chat_cubit.dart';
+import 'package:star_chat/pages/cubits/edit_profile_cubit/edit_profile_cubit.dart';
 import 'package:star_chat/pages/cubits/home_cubit/home_cubit.dart';
 import 'package:star_chat/pages/cubits/profile_cubit/profile_cubit.dart';
 import 'package:star_chat/pages/cubits/search_cubit/search_cubit.dart';
@@ -46,6 +47,10 @@ void main() async {
           ),
           BlocProvider(create: (context) => ChatCubit()),
           BlocProvider(create: (context) => SearchCubit()),
+          BlocProvider(
+            create:
+                (context) => EditProfileCubit(repo: context.read<Repository>()),
+          ),
         ],
         child: StarChat(isLoggedIn: isLogedIn),
       ),
@@ -63,7 +68,7 @@ class StarChat extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       initialRoute: Splash.pageoute,
       routes: {
-        Splash.pageoute: (context)=> const Splash(),
+        Splash.pageoute: (context) => const Splash(),
         LoginScreen.pageRoute: (context) => const LoginScreen(),
         SingupScreen.pageRoute: (context) => const SingupScreen(),
         BottomBar.pageRoute: (context) => const BottomBar(),

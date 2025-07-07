@@ -18,7 +18,7 @@ class HomeCubit extends Cubit<HomeState> {
     repo.listenToFriendsList(onChanged: (newFriends) {
       emit(HomeSuccess(
         currentUser: repo.currentUser!,
-        friendsList: List<FriendModel>.from(newFriends), /////////////////
+        friendsList: List<FriendModel>.from(newFriends), ///////////////////////////////////////////
       ));
     });
   }

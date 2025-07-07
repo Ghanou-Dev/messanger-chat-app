@@ -50,10 +50,14 @@ class _SplashState extends State<Splash> {
 
   @override
   Widget build(BuildContext context) {
+    Size size = MediaQuery.of(context).size;
     return Scaffold(
       backgroundColor: Color(0xffd4e4ed),
       body: Center(
-        child: Image.asset('assets/images/android_12.png'),
+        child: Image.asset(
+          'assets/images/android_12.png',
+          width: size.width * 0.58,
+        ),
       ).animate().fadeOut(
         duration: 2.seconds,
         delay: 1.seconds,

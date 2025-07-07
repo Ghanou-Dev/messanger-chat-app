@@ -87,7 +87,7 @@ class _HomeChatPageState extends State<HomeChatPage> {
             ); // أو أي شاشة تحميل مؤقتة
           } else if (state is HomeSuccess) {
             final currentUser = state.currentUser;
-            final friends = repo.friends;
+            final friends = state.friendsList;
 
             if (friends.isEmpty) {
               return Column(
