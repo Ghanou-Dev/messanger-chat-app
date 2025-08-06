@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:star_chat/const.dart';
 import 'package:star_chat/pages/bottom_bar.dart';
-import 'package:star_chat/pages/home_chat_page.dart';
 import 'package:star_chat/pages/login_screen.dart';
 import 'package:star_chat/services/repository.dart';
 

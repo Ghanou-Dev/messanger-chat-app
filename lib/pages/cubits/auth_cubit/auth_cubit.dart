@@ -25,7 +25,7 @@ class AuthCubit extends Cubit<AuthState> {
       // تحميل بيانات المستخدم
       await repo.loadCurrentUser();
       emit(LoginSuccess());
-    } on FirebaseAuthException catch (e) {
+    } on FirebaseAuthException {
       emit(LoginFialur(messageError: 'Invalid email or password!'));
     }
   }

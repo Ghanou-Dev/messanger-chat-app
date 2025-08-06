@@ -3,7 +3,7 @@ import '../models/friend_model.dart';
 
 class ActiveFriend extends StatelessWidget {
   final FriendModel friend;
-  ActiveFriend({required this.friend, super.key});
+  const ActiveFriend({required this.friend, super.key});
 
   @override
   Widget build(BuildContext context) {

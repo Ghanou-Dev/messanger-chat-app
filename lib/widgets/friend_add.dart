@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:star_chat/models/friend_model.dart';
 import 'package:star_chat/pages/bottom_bar.dart';
 import 'package:star_chat/pages/cubits/home_cubit/home_cubit.dart';
-import 'package:star_chat/pages/cubits/home_cubit/home_state.dart';
 import 'package:star_chat/services/repository.dart';
 import '../models/user_model.dart';
 import '../const.dart';

@@ -37,8 +37,8 @@ class _StateChatPage extends State<ChatPage> {
   }
 
   String? chatID;
-  TextEditingController _textFieldController = TextEditingController();
-  ScrollController _listController = ScrollController();
+  final TextEditingController _textFieldController = TextEditingController();
+  final ScrollController _listController = ScrollController();
 
   // Generate Chat UID
   String generateChatUID(String userUID, String friendUID) {
