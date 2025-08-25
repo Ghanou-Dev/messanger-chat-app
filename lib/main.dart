@@ -20,7 +20,6 @@ import 'package:star_chat/simple_bloc_observer.dart';
 import 'pages/bottom_bar.dart';
 import './pages/singup_screen.dart';
 import './pages/login_screen.dart';
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
@@ -73,7 +72,7 @@ class StarChat extends StatelessWidget {
         SingupScreen.pageRoute: (context) => const SingupScreen(),
         BottomBar.pageRoute: (context) => const BottomBar(),
         SearchPage.pageRoute: (context) => const SearchPage(),
-        HomeChatPage.pageRoute: (context) => HomeChatPage(),
+        HomeChatPage.pageRoute: (context) =>  const HomeChatPage(),
         EdietProfilePage.pageRoute: (context) => EdietProfilePage(),
         ChangePasswordPage.pageRoute: (context) => ChangePasswordPage(),
       },
